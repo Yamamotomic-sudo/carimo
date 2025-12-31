@@ -79,10 +79,13 @@ label, .card-box label {
 }
 
 /* ボタン */
+/* ボタン（元からある50〜60行目あたりの塊） */
 button {
   border-radius: 10px;
   font-weight: bold;
   cursor: pointer;
+  touch-action: manipulation; /* ← 追加：連打してもズームしなくなる */
+  user-select: none;          /* ← 追加：連打しても文字が青く選択されない */
 }
 
 /* 借りるボタン（青系） */
@@ -273,4 +276,5 @@ input, select, button {
   margin-top: 8px !important;
   padding-top: 8px !important;
   border-top: 1px dashed #ccc !important;
+
 }
