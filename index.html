@@ -59,14 +59,14 @@
   </select>
 
 </div>
-  <div id="result" class="result card-box" style="display:none;">
+  <div id="result" class="result card-box" style="display:none; overflow:hidden;">
     <div id="resultText"></div>
     <div id="planText" class="plan-info"></div>
     <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
     <label style="font-size:14px; color:#2196F3;">借入日</label>
-    <input type="date" id="borrowDate" onchange="calc()">
+    <input type="date" id="borrowDate" onchange="calc()" style="width: 100%; box-sizing: border-box;">
     <button onclick="borrowConfirm()" style="background:#2196F3; color:white;">この条件で借りる</button>
-  </div>
+</div>
   <button onclick="goBackWithReset()" style="background:#888; color:white;">戻る</button>
 </div>
 

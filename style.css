@@ -201,3 +201,25 @@ input, select, button {
   justify-content: space-between;
   gap: 10px;
 }
+
+/* 全ての要素で「枠線までを幅に含める」設定を徹底 */
+* {
+  box-sizing: border-box !important;
+}
+
+/* 借りる画面の入力欄がはみ出すのを防ぐ */
+#borrow input, 
+#borrow select, 
+#borrowDate {
+  width: 100% !important;
+  max-width: 100% !important; /* 絶対に親を越えない */
+  min-width: 0 !important;   /* ブラウザの最小幅設定を解除 */
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* 月移動ボタンが長いのを直す（念押し） */
+.month-btn {
+  width: 40px !important;
+  flex: 0 0 40px !important; /* 伸び縮みを禁止 */
+}
