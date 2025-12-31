@@ -13,6 +13,14 @@ h1, h2 {
   text-align: center;
 }
 
+/* Welcome画面のボタン */
+#welcome button {
+  margin: 50px 0; /* 上下の余白を増やす */
+  padding: 20px;
+  font-size: 18px;
+  border-radius: 10px;
+}
+
 /* 画面切り替え */
 .screen { display: none; padding: 20px; }
 .screen.active { display: block; }
