@@ -223,3 +223,46 @@ input, select, button {
   width: 40px !important;
   flex: 0 0 40px !important; /* 伸び縮みを禁止 */
 }
+
+/* --- 返済状況カードのボタンを横並びにする（追加分） --- */
+
+/* ボタンを包むグループの設定 */
+.btn-group {
+  display: flex !important;   /* 強制的に横並びにする */
+  gap: 8px !important;        /* ボタン同士の隙間 */
+  width: 100% !important;
+  margin-top: 10px !important;
+}
+
+/* 1回返済ボタン（2/3の幅 ＋ 緑色） */
+.btn-main {
+  flex: 2 !important;         /* 2の割合で広がる */
+  width: auto !important;     /* 100%固定を解除 */
+  background: #22c55e !important; /* 鮮やかな緑 */
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  margin: 0 !important;       /* 余計な余白を消す */
+  font-size: 14px !important;
+}
+
+/* その他ボタン（1/3の幅 ＋ 灰色） */
+.btn-sub {
+  flex: 1 !important;         /* 1の割合で広がる */
+  width: auto !important;     /* 100%固定を解除 */
+  background: #9e9e9e !important; /* 落ち着いた灰色 */
+  color: white !important;
+  border: none !important;
+  padding: 12px !important;
+  margin: 0 !important;       /* 余計な余白を消す */
+  font-size: 14px !important;
+}
+
+/* 「その他」を押したときに出るメニューの調整 */
+.extra-menu {
+  display: none; /* JSで切り替えるので基本は隠す */
+  gap: 8px !important;
+  margin-top: 8px !important;
+  padding-top: 8px !important;
+  border-top: 1px dashed #ccc !important;
+}

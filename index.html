@@ -93,11 +93,15 @@ history.replaceState({ screen: "welcome" }, "", "#welcome");
   }
 }
 
-  function showBorrow() { 
+function showBorrow() { 
+  const dateInput = document.getElementById("borrowDate");
+  // すでに入力がある（手入力中）なら上書きしない
+  if (!dateInput.value) {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById("borrowDate").value = today;
-    switchScreen('borrow'); 
+    dateInput.value = today;
   }
+  switchScreen('borrow'); 
+}
 
   function showStatus() { 
     viewDate = new Date(); 
@@ -117,45 +121,42 @@ history.replaceState({ screen: "welcome" }, "", "#welcome");
   function resetBorrowForm() {
     document.getElementById("purpose").value = ""; 
     document.getElementById("amount").value = "";
+    document.getElementById("borrowDate").value = ""; // 追加：日付もリセット
     document.getElementById("result").style.display = "none";
-  }
+}
 
   const rates = { 1: 0.01, 3: 0.06, 6: 0.08, 10: 0.10, 18: 0.11 };
 
 function calc() {
   const a = Number(document.getElementById("amount").value);
   const n = Number(document.getElementById("installments").value);
+  const bDateStr = document.getElementById("borrowDate").value;
 
-  let bDateStr = document.getElementById("borrowDate").value;
-  if (!bDateStr) {
-    bDateStr = new Date().toISOString().split("T")[0];
-    document.getElementById("borrowDate").value = bDateStr;
-  }
-
+  // 1. 金額が入力されていない時は結果を隠して終了
   if (a <= 0) {
     document.getElementById("result").style.display = "none";
     return;
   }
 
-    
-    if (a <= 0 || !bDateStr) {
-      document.getElementById("result").style.display = "none";
-      return;
-    }
+  // 2. 金額があれば、まずは「計算結果（お金）」だけ表示する
+  const fee = a * rates[n];
+  const total = Math.ceil(a + fee);
+  const monthly = Math.ceil(total / n);
+  const payLabel = (n === 1) ? "翌月の返済額" : "月々の返済額";
 
-    const fee = a * rates[n];
-    const total = Math.ceil(a + fee);
-    const monthly = Math.ceil(total / n);
-    const payLabel = (n === 1) ? "翌月の返済額" : "月々の返済額";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("resultText").innerHTML = `
+    手数料：${fee.toLocaleString()}円<br>
+    総返済額：${total.toLocaleString()}円<br>
+    <strong>${payLabel}：${monthly.toLocaleString()}円</strong>
+  `;
 
-    document.getElementById("result").style.display = "block";
-    document.getElementById("resultText").innerHTML = `
-      手数料：${fee.toLocaleString()}円<br>
-      総返済額：${total.toLocaleString()}円<br>
-      <strong>${payLabel}：${monthly.toLocaleString()}円</strong>
-    `;
-    
-    const bDate = new Date(bDateStr + "T00:00:00");
+  // 3. 日付のチェック（11/31などの無効な日付もここで判定）
+  const bDate = new Date(bDateStr + "T00:00:00");
+  const isValidDate = bDateStr && !isNaN(bDate.getTime());
+
+  if (isValidDate) {
+    // 日付が正しい場合のみ、返済計画を表示
     const start = new Date(bDate.getFullYear(), bDate.getMonth() + 1, 25);
     const end = new Date(bDate.getFullYear(), bDate.getMonth() + n, 25);
     
@@ -166,7 +167,11 @@ function calc() {
       planMsg = `🗓 返済計画：${start.getFullYear()}年${start.getMonth() + 1}月 〜 ${end.getFullYear()}年${end.getMonth() + 1}月 (${n}回払い)`;
     }
     document.getElementById("planText").innerHTML = planMsg;
+  } else {
+    // 日付が入力途中、または無効な場合は、案内を表示してカード自体は残す
+    document.getElementById("planText").innerHTML = "<span style='color:orange; font-size:12px;'>⚠️ 正しい日付を入力してください</span>";
   }
+}
 
   function borrowConfirm() {
     const a = Number(document.getElementById("amount").value);
@@ -234,6 +239,11 @@ function calc() {
     const totalInitial = borrows.reduce((s, b) => s + b.total, 0);
     const progressPercent = totalInitial > 0 ? Math.round(((totalInitial - totalRemaining) / totalInitial) * 100) : 100;
 
+    // --- ここからボタンの表示判定 ---
+    const today = new Date();
+    const isAfter25th = (today.getDate() >= 25); 
+    const isViewingCurrentMonth = (targetYear === today.getFullYear() && targetMonth === today.getMonth());
+
     summaryArea.innerHTML = `
       <div class="summary-box monthly">
         <div class="month-selector">
@@ -242,17 +252,16 @@ function calc() {
           <button class="month-btn" onclick="changeMonth(1)">＞</button>
         </div>
         <small style="color:#aaa;">今月の返済額</small>
-<span class="monthly-amount">
-  ¥${monthlySum.toLocaleString()}
-  ${monthlySum === 0 ? "<span style='font-size:14px;color:#4CAF50;'> 済</span>" : ""}
-</span>
+        <span class="monthly-amount">
+          ¥${monthlySum.toLocaleString()}
+          ${monthlySum === 0 ? "<span style='font-size:14px;color:#4CAF50;'> 済</span>" : ""}
+        </span>
 
-${(new Date().getDate() >= 25 && monthlySum > 0) ? `
-  <button onclick="payAllThisMonth()" style="margin-top:10px;background:#4CAF50;color:white;">
-    今月分をまとめて返済
-  </button>
-` : ""}
-
+        ${(isAfter25th && isViewingCurrentMonth && monthlySum > 0) ? `
+          <button onclick="payAllThisMonth()" style="margin-top:10px;background:#4CAF50;color:white;">
+            今月分をまとめて返済
+          </button>
+        ` : ""}
       </div>
       <div class="summary-box total">
         <small>返済残り合計 (${progressPercent}%)</small> <strong style="float:right;">¥${totalRemaining.toLocaleString()}</strong>
@@ -337,35 +346,44 @@ ${(new Date().getDate() >= 25 && monthlySum > 0) ? `
       renderStatus();
     }
   }
-  function payAllThisMonth() {
-    let borrows = JSON.parse(localStorage.getItem("borrows") || "[]");
+function payAllThisMonth() {
+  let borrows = JSON.parse(localStorage.getItem("borrows") || "[]");
 
-    const targetYear = viewDate.getFullYear();
-    const targetMonth = viewDate.getMonth();
-    const target25 = new Date(targetYear, targetMonth, 25).getTime();
+  // ① 確認ダイアログ
+  if (!confirm("今月の返済予定をすべて「返済済み」にしますか？")) return;
 
-    let changed = false;
+  // ② 「今月（表示中）の25日」を数値で取得
+  const targetYear = viewDate.getFullYear();
+  const targetMonth = viewDate.getMonth();
+  const target25Time = new Date(targetYear, targetMonth, 25).getTime();
 
-    borrows.forEach(b => {
-      if (b.remaining <= 0) return;
+  let changed = false;
 
-      const startDate = new Date(b.date);
-      const nextIdx = b.installments - b.remaining;
-      const payDate = new Date(
-        startDate.getFullYear(),
-        startDate.getMonth() + nextIdx + 1,
-        25
-      ).getTime();
+  borrows.forEach(b => {
+    if (b.remaining <= 0) return;
 
-      if (payDate === target25) {
-        b.remaining--;
-        changed = true;
+    const startDate = new Date(b.date);
+    // その借入の「次の返済予定日」を算出
+    const nextIdx = b.installments - b.remaining;
+    const thisPayDate = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth() + nextIdx + 1,
+      25
+    ).getTime();
+
+    // ③ 「表示中の25日」と「予定日」が一致したら返済実行
+    if (thisPayDate === target25Time) {
+      b.remaining--;
+      changed = true;
     }
   });
 
   if (changed) {
     localStorage.setItem("borrows", JSON.stringify(borrows));
-    renderStatus();
+    renderStatus(); // 画面を更新
+    alert("返済を完了しました！");
+  } else {
+    alert("今月分の返済対象が見つかりませんでした。");
   }
 }
 window.addEventListener("popstate", (e) => {
