@@ -155,3 +155,8 @@ button[onclick^="goBack"] {
   flex: 1; /* ラベルが中央に伸びるように */
 }
 
+#borrowDate {
+    width: 100%;
+    max-width: 100%; /* 親要素を超えないように強制 */
+    display: block;
+}
