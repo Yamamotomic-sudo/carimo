@@ -244,6 +244,7 @@ function calc() {
     const isAfter25th = (today.getDate() >= 25); 
     const isViewingCurrentMonth = (targetYear === today.getFullYear() && targetMonth === today.getMonth());
 
+   // --- ここから書き換え（summaryArea.innerHTML の後半部分） ---
     summaryArea.innerHTML = `
       <div class="summary-box monthly">
         <div class="month-selector">
@@ -263,9 +264,19 @@ function calc() {
           </button>
         ` : ""}
       </div>
+      
       <div class="summary-box total">
-        <small>返済残り合計 (${progressPercent}%)</small> <strong style="float:right;">¥${totalRemaining.toLocaleString()}</strong>
-        <div class="progress-container"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <small style="color:#666;">借入合計</small>
+          <span style="font-size: 12px; color: #666;">残り：${100 - progressPercent}%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;">
+          <strong style="font-size: 20px;">¥${totalInitial.toLocaleString()}</strong>
+          <span style="font-weight: bold; color: #4CAF50;">${progressPercent}%</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar" style="width:${progressPercent}%"></div>
+        </div>
       </div>
     `;
 
