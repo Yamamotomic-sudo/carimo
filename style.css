@@ -1,0 +1,157 @@
+/* ===== 基本設定 ===== */
+body { 
+  font-family: sans-serif; 
+  margin: 0; padding: 0; 
+  background: #f5f5f5; /* 明るい背景 */
+  color: #333;          /* 濃い文字 */
+  line-height: 1.6;
+}
+
+/* 見出し */
+h1, h2 {
+  color: #111;
+  text-align: center;
+}
+
+/* 画面切り替え */
+.screen { display: none; padding: 20px; }
+.screen.active { display: block; }
+
+/* 入力・セレクト */
+input, select, button { 
+  width: 100%; 
+  padding: 12px; 
+  margin: 8px 0; 
+  box-sizing: border-box; 
+  font-size: 16px; 
+  border-radius: 8px; 
+  border: 1px solid #ccc;
+  background: #fff; 
+  color: #333;
+}
+
+input::placeholder {
+  color: #999;
+}
+
+/* カード系 */
+.card-box, .summary-box, .card {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* カード内ラベル */
+label, .card-box label {
+  color: #666;
+  font-size: 13px;
+  margin-top: 8px;
+  display: block;
+}
+
+/* 結果表示 */
+.result {
+  background: #e0f2fe; /* 薄い青 */
+  border: 1px solid #3b82f6;
+  color: #111;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* 月次返済額 */
+.monthly-amount {
+  font-size: 32px;
+  color: #1e40af; /* 濃い青 */
+  font-weight: 900;
+  display: block;
+  margin-top: 5px;
+}
+
+/* ボタン */
+button {
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 借りるボタン（青系） */
+button[onclick="showBorrow()"],
+button[onclick="borrowConfirm()"] {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  color: white;
+}
+
+/* 返済状況ボタン（緑系） */
+button[onclick="showStatus()"] {
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  color: white;
+}
+
+/* 戻るボタン */
+button[onclick^="goBack"] {
+  background: #e5e7eb;
+  color: #111;
+}
+
+/* プログレスバー */
+.progress-container { 
+  background: #eee; 
+  border-radius: 10px; 
+  height: 16px; 
+  width: 100%; 
+  margin: 10px 0; 
+  overflow: hidden; 
+}
+.progress-bar { 
+  background: #4CAF50; 
+  height: 100%; 
+  transition: width 0.5s; 
+}
+
+/* 追加メニューや小ボタン */
+.extra-menu { display: none; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ccc; }
+.btn-undo { background: #f59e0b; color: white; font-size: 14px; flex: 1; }
+.btn-del { background: #ef4444; color: white; font-size: 14px; flex: 1; }
+
+/* 警告 */
+.alert-overdue { color: red !important; font-weight: bold !important; }
+
+/* フッター */
+.footer { font-size: 11px; color: #555; text-align: center; margin: 40px 0 10px; }
+
+/* 借りる画面専用 */
+#borrow label { color: #333; font-weight: 500; }
+#borrow input, #borrow select { background: #fff; color: #333; border: 1px solid #ccc; }
+#borrow input:focus, #borrow select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
+#borrow input::placeholder, #borrow select::placeholder { color: #999; }
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 6px; /* ボタン同士の隙間を少し広げる */
+}
+
+.month-btn {
+  width: 32px;      /* 幅を少し小さく */
+  height: 35px;     /* 高さも揃える */
+  padding: 4px;     /* 内側の余白を小さく */
+  font-size: 16px;  /* 文字サイズも少し小さめ */
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.current-month-label {
+  font-size: 19px;
+  font-weight: 700;
+  color: #111; 
+  text-align: center;
+  flex: 1; /* ラベルが中央に伸びるように */
+}
+

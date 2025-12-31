@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>カリモ</title>
+  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+</head>
+<body>
+
+<div id="welcome" class="screen active">
+  <h1>借りモ。</h1>
+
+  <button
+    onclick="showBorrow()"
+    style="background:#1976D2; color:white; font-weight:bold;"
+  >
+    借りる
+  </button>
+
+  <button
+    onclick="showStatus()"
+    style="background:#4CAF50; color:white;"
+  >
+    返済状況を見る
+  </button>
+
+  <p style="
+    margin-top: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+  ">
+    © スピードキャッシュファイナンシャルグループ
+  </p>
+</div>
+
+
+<div id="borrow" class="screen">
+  <h1>借りる</h1>
+  <div class="card-box">
+
+  <label>名目（任意）</label>
+  <input type="text" id="purpose" placeholder="例：スマホ代">
+
+  <label>金額</label>
+  <input type="number" id="amount" placeholder="金額を入力" oninput="calc()">
+
+  <label>分割回数</label>
+  <select id="installments" onchange="calc()">
+    <option value="1">翌月一括払い（手数料1%）</option>
+    <option value="3">3回払い（手数料6%）</option>
+    <option value="6">6回払い（手数料8%）</option>
+    <option value="10">10回払い（手数料10%）</option>
+    <option value="18">18回払い（手数料11%）</option>
+  </select>
+
+</div>
+  <div id="result" class="result" style="display:none;">
+    <div id="resultText"></div>
+    <div id="planText" class="plan-info"></div>
+    <hr style="border:0; border-top:1px solid #ccc; margin:10px 0;">
+    <label style="font-size:14px; color:#2196F3;">借入日</label>
+    <input type="date" id="borrowDate" onchange="calc()">
+    <button onclick="borrowConfirm()" style="background:#2196F3; color:white;">この条件で借りる</button>
+  </div>
+  <button onclick="goBackWithReset()" style="background:#888; color:white;">戻る</button>
+</div>
+
+<div id="status" class="screen">
+  <h1>返済状況</h1>
+  <div id="statusSummary" class="summary-section"></div>
+  <div id="statusList"></div>
+  <button onclick="goBack()" style="background:#888; color:white; margin-top:20px;">戻る</button>
+</div>
+
+<script>
+// 初期状態を履歴に登録
+history.replaceState({ screen: "welcome" }, "", "#welcome");
+
+  let viewDate = new Date();
+
+  function switchScreen(id, push = true) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+
+  if (push) {
+    history.pushState({ screen: id }, "", "#" + id);
+  }
+}
+
+  function showBorrow() { 
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("borrowDate").value = today;
+    switchScreen('borrow'); 
+  }
+
+  function showStatus() { 
+    viewDate = new Date(); 
+    renderStatus(); 
+    switchScreen('status'); 
+  }
+
+  function goBackWithReset() { 
+    resetBorrowForm(); 
+    switchScreen('welcome'); 
+  }
+
+  function goBack() { 
+    switchScreen('welcome'); 
+  }
+
+  function resetBorrowForm() {
+    document.getElementById("purpose").value = ""; 
+    document.getElementById("amount").value = "";
+    document.getElementById("result").style.display = "none";
+  }
+
+  const rates = { 1: 0.01, 3: 0.06, 6: 0.08, 10: 0.10, 18: 0.11 };
+
+function calc() {
+  const a = Number(document.getElementById("amount").value);
+  const n = Number(document.getElementById("installments").value);
+
+  let bDateStr = document.getElementById("borrowDate").value;
+  if (!bDateStr) {
+    bDateStr = new Date().toISOString().split("T")[0];
+    document.getElementById("borrowDate").value = bDateStr;
+  }
+
+  if (a <= 0) {
+    document.getElementById("result").style.display = "none";
+    return;
+  }
+
+    
+    if (a <= 0 || !bDateStr) {
+      document.getElementById("result").style.display = "none";
+      return;
+    }
+
+    const fee = a * rates[n];
+    const total = Math.ceil(a + fee);
+    const monthly = Math.ceil(total / n);
+    const payLabel = (n === 1) ? "翌月の返済額" : "月々の返済額";
+
+    document.getElementById("result").style.display = "block";
+    document.getElementById("resultText").innerHTML = `
+      手数料：${fee.toLocaleString()}円<br>
+      総返済額：${total.toLocaleString()}円<br>
+      <strong>${payLabel}：${monthly.toLocaleString()}円</strong>
+    `;
+    
+    const bDate = new Date(bDateStr + "T00:00:00");
+    const start = new Date(bDate.getFullYear(), bDate.getMonth() + 1, 25);
+    const end = new Date(bDate.getFullYear(), bDate.getMonth() + n, 25);
+    
+    let planMsg = "";
+    if (n === 1) {
+      planMsg = `🗓 返済日：${start.getFullYear()}年${start.getMonth() + 1}月25日 (一括払い)`;
+    } else {
+      planMsg = `🗓 返済計画：${start.getFullYear()}年${start.getMonth() + 1}月 〜 ${end.getFullYear()}年${end.getMonth() + 1}月 (${n}回払い)`;
+    }
+    document.getElementById("planText").innerHTML = planMsg;
+  }
+
+  function borrowConfirm() {
+    const a = Number(document.getElementById("amount").value);
+    const n = Number(document.getElementById("installments").value);
+    const bDate = document.getElementById("borrowDate").value;
+    if (a <= 0 || !bDate) return;
+    const fee = a * rates[n];
+    const total = Math.ceil(a + fee);
+    const data = { 
+      purpose: document.getElementById("purpose").value || "未入力",
+      date: new Date(bDate + "T00:00:00").toISOString(),
+      principal: a, 
+      total: total, 
+      installments: n, 
+      monthly: Math.ceil(total/n), 
+      remaining: n, 
+      id: Date.now()
+    };
+    const b = JSON.parse(localStorage.getItem("borrows") || "[]");
+    b.push(data);
+    localStorage.setItem("borrows", JSON.stringify(b));
+    alert("登録しました");
+    resetBorrowForm(); goBack();
+  }
+
+  function changeMonth(diff) {
+    viewDate.setMonth(viewDate.getMonth() + diff);
+    renderStatus();
+  }
+
+  function renderStatus() {
+    const summaryArea = document.getElementById("statusSummary");
+    const listArea = document.getElementById("statusList");
+    let borrows = JSON.parse(localStorage.getItem("borrows") || "[]");
+    
+    const now = new Date();
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const targetYear = viewDate.getFullYear();
+    const targetMonth = viewDate.getMonth();
+    const target25Time = new Date(targetYear, targetMonth, 25).getTime();
+
+    let monthlySum = 0;
+    borrows.forEach(b => {
+      const d = new Date(b.date);
+      b.allPayDates = [];
+      for(let i = 1; i <= b.installments; i++) {
+        b.allPayDates.push(new Date(d.getFullYear(), d.getMonth() + i, 25).getTime());
+      }
+      const nextIdx = b.installments - b.remaining;
+      b.nextPayDateObj = new Date(b.allPayDates[nextIdx] || b.allPayDates[b.allPayDates.length-1]);
+      
+      const hasPaymentInTargetMonth = b.allPayDates.some((time, idx) => {
+          return time === target25Time && idx >= (b.installments - b.remaining);
+      });
+      if (hasPaymentInTargetMonth) {
+        monthlySum += b.monthly;
+        b.isTarget = true;
+      } else {
+        b.isTarget = false;
+      }
+    });
+
+    borrows.sort((a, b) => a.nextPayDateObj - b.nextPayDateObj);
+    const totalRemaining = borrows.reduce((s, b) => s + (b.monthly * b.remaining), 0);
+    const totalInitial = borrows.reduce((s, b) => s + b.total, 0);
+    const progressPercent = totalInitial > 0 ? Math.round(((totalInitial - totalRemaining) / totalInitial) * 100) : 100;
+
+    summaryArea.innerHTML = `
+      <div class="summary-box monthly">
+        <div class="month-selector">
+          <button class="month-btn" onclick="changeMonth(-1)">＜</button>
+          <div class="current-month-label">${targetYear}年 ${targetMonth + 1}月</div>
+          <button class="month-btn" onclick="changeMonth(1)">＞</button>
+        </div>
+        <small style="color:#aaa;">今月の返済額</small>
+<span class="monthly-amount">
+  ¥${monthlySum.toLocaleString()}
+  ${monthlySum === 0 ? "<span style='font-size:14px;color:#4CAF50;'> 済</span>" : ""}
+</span>
+
+${(new Date().getDate() >= 25 && monthlySum > 0) ? `
+  <button onclick="payAllThisMonth()" style="margin-top:10px;background:#4CAF50;color:white;">
+    今月分をまとめて返済
+  </button>
+` : ""}
+
+      </div>
+      <div class="summary-box total">
+        <small>返済残り合計 (${progressPercent}%)</small> <strong style="float:right;">¥${totalRemaining.toLocaleString()}</strong>
+        <div class="progress-container"><div class="progress-bar" style="width:${progressPercent}%"></div></div>
+      </div>
+    `;
+
+    listArea.innerHTML = "";
+    ["未返済", "完済済み"].forEach(type => {
+      const isOn = type === "未返済";
+      const filtered = borrows.filter(b => isOn ? b.remaining > 0 : b.remaining <= 0);
+      if (filtered.length > 0 || isOn) {
+        const h2 = document.createElement("h2");
+        h2.innerText = isOn ? "⏳ 未返済" : "✅ 完済済み";
+        listArea.appendChild(h2);
+        
+        filtered.forEach(b => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.style.borderLeft = "5px solid " + (isOn ? "#2196F3" : "#9e9e9e");
+          if (isOn && !b.isTarget) div.style.opacity = "0.4";
+          const nd = b.nextPayDateObj;
+          const dayClass = (isOn && nd.getTime() <= todayZero) ? "class='alert-overdue'" : "";
+          const listLabel = (b.installments === 1) ? "返済額" : "月々";
+          
+          div.innerHTML = `
+            <strong>📌 ${b.purpose}</strong><br>
+            <span class="label-width">元金：</span>¥${(b.principal || 0).toLocaleString()}<br>
+            <span class="label-width">総額：</span>¥${b.total.toLocaleString()}<br>
+            ${isOn ? `<span class="label-width">${listLabel}：</span>¥${b.monthly.toLocaleString()}<br>
+                       <span class="label-width">次の返済日：</span><span ${dayClass}>${nd.getFullYear()}年${nd.getMonth()+1}月25日</span><br>` : ""}
+            <span class="label-width">回数：</span>${b.remaining} / ${b.installments} 回
+            <div class="btn-group">
+              ${isOn ? `<button onclick="payOneById(${b.id})" class="btn-main">1回返済</button>` : ""}
+              <button onclick="toggleMenuById(${b.id})" class="btn-sub">その他</button>
+            </div>
+            <div id="extra-${b.id}" class="extra-menu">
+              <button onclick="undoPayById(${b.id})" class="btn-undo">戻す</button>
+              <button onclick="deleteItemById(${b.id})" class="btn-del">削除</button>
+            </div>
+          `;
+          listArea.appendChild(div);
+        });
+      }
+    });
+  }
+
+  function payOneById(id) {
+    let b = JSON.parse(localStorage.getItem("borrows"));
+    const idx = b.findIndex(item => item.id === id);
+    if (confirm(b[idx].purpose + " を1回分返済しますか？")) {
+      b[idx].remaining--; 
+      localStorage.setItem("borrows", JSON.stringify(b)); 
+      renderStatus();
+    }
+  }
+
+  function toggleMenuById(id) {
+    const menu = document.getElementById('extra-' + id);
+    document.querySelectorAll('.extra-menu').forEach(m => { 
+      if(m.id !== 'extra-'+id) m.style.display = 'none'; 
+    });
+    if(menu) menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+  }
+
+  function undoPayById(id) {
+    let b = JSON.parse(localStorage.getItem("borrows"));
+    const idx = b.findIndex(item => item.id === id);
+    if (b[idx].remaining < b[idx].installments) {
+      b[idx].remaining++; 
+      localStorage.setItem("borrows", JSON.stringify(b)); 
+      renderStatus();
+    }
+  }
+
+  function deleteItemById(id) {
+    let b = JSON.parse(localStorage.getItem("borrows"));
+    const idx = b.findIndex(item => item.id === id);
+    if (confirm("削除しますか？")) {
+      b.splice(idx, 1); 
+      localStorage.setItem("borrows", JSON.stringify(b)); 
+      renderStatus();
+    }
+  }
+  function payAllThisMonth() {
+    let borrows = JSON.parse(localStorage.getItem("borrows") || "[]");
+
+    const targetYear = viewDate.getFullYear();
+    const targetMonth = viewDate.getMonth();
+    const target25 = new Date(targetYear, targetMonth, 25).getTime();
+
+    let changed = false;
+
+    borrows.forEach(b => {
+      if (b.remaining <= 0) return;
+
+      const startDate = new Date(b.date);
+      const nextIdx = b.installments - b.remaining;
+      const payDate = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth() + nextIdx + 1,
+        25
+      ).getTime();
+
+      if (payDate === target25) {
+        b.remaining--;
+        changed = true;
+    }
+  });
+
+  if (changed) {
+    localStorage.setItem("borrows", JSON.stringify(borrows));
+    renderStatus();
+  }
+}
+window.addEventListener("popstate", (e) => {
+  if (e.state && e.state.screen) {
+    switchScreen(e.state.screen, false);
+  }
+});
+
+function applyTheme() {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.body.classList.toggle('theme-dark', prefersDark);
+}
+
+applyTheme();
+
+</script>
+
+<script>
+  // OSの設定に合わせて初期テーマを決定
+  if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    document.body.classList.add("theme-dark");
+  }
+
+  // 手動切り替え用（後でボタンにつなぐ）
+  function toggleTheme() {
+    document.body.classList.toggle("theme-dark");
+  }
+</script>
+
+<script>
+  // OSのテーマを取得
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  // localStorage に保存があればそれを優先
+  const savedTheme = localStorage.getItem("theme");
+
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    document.body.classList.add("theme-dark");
+  } else {
+    document.body.classList.remove("theme-dark");
+  }
+</script>
+
+</body>
+</html>
