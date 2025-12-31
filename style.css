@@ -155,8 +155,49 @@ button[onclick^="goBack"] {
   flex: 1; /* ラベルが中央に伸びるように */
 }
 
+/* すべての入力要素を枠内に強制的に収める設定 */
+input, select, button { 
+  width: 100% !important; /* 親要素の幅いっぱいに */
+  max-width: 100%;        /* 親要素を超えない */
+  box-sizing: border-box; /* paddingを含めて幅を計算 */
+  margin: 8px 0;
+  display: block;
+}
+
+/* 借入日入力がはみ出すのを防ぐ */
 #borrowDate {
-    width: 100%;
-    max-width: 100%; /* 親要素を超えないように強制 */
-    display: block;
+  min-width: 0;           /* デフォルトの最小幅を解除 */
+  appearance: none;       /* OSのデザインをリセット */
+  -webkit-appearance: none;
+}
+
+/* 結果表示エリア（result）の調整 */
+.result.card-box {
+  padding: 15px;
+  background: #e0f2fe;    /* 今の色を維持 */
+  border: 1px solid #3b82f6;
+  box-shadow: none;       /* カードが重なって見えるのを防ぐ */
+}
+
+/* 月移動ボタンのサイズを強制固定 */
+.month-btn {
+  width: 40px !important;   /* 横幅を強制的に40pxに */
+  height: 40px !important;  /* 高さを強制的に40pxに */
+  padding: 0 !important;    /* 余白で膨らまないように */
+  display: flex !important; /* 中央寄せしやすくする */
+  align-items: center;
+  justify-content: center;
+  font-size: 18px !important;
+  flex-shrink: 0 !important; /* 親が狭くても潰れないように */
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* ボタンの中央配置を維持するための親要素設定 */
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
